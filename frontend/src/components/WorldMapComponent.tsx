@@ -17,10 +17,10 @@ export const WorldMapComponent: React.FC<WorldMapComponentProps> = ({
   onCellClick,
 }) => {
   if (!worldMap) {
-    return <div className="map-loading">Loading map...</div>;
+    return <div className="map-loading">加载地图中...</div>;
   }
 
-  const cellSize = 12;
+  const cellSize = 40;
   const width = worldMap.width * cellSize;
   const height = worldMap.height * cellSize;
 
@@ -68,7 +68,7 @@ export const WorldMapComponent: React.FC<WorldMapComponentProps> = ({
 
   return (
     <div className="world-map-container">
-      <h3 className="map-title">World Map</h3>
+      <h3 className="map-title">世界地图</h3>
       <div className="map-legend">
         {Object.entries(BIOME_COLORS).map(([biome, color]) => (
           <div key={biome} className="legend-item">

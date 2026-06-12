@@ -94,11 +94,40 @@ async def get_agents():
             "id": a.id,
             "name": a.name,
             "position": list(a.position),
+            "health": a.health if hasattr(a, 'health') else 100.0,
             "energy": a.energy,
             "inventory": a.inventory,
             "current_action": a.current_action.value if a.current_action else "idle"
         })
     return result
+
+@app.get("/agents/{agent_id}")
+async def get_agent(agent_id: str):
+    """获取单个智能体详情"""
+    if not orchestrator or agent_id not in orchestrator.agents:
+        return {"detail": "Agent not found"}
+
+    a = orchestrator.agents[agent_id]
+    return {
+        "id": a.id,
+        "name": a.name,
+        "position": list(a.position),
+        "health": a.health if hasattr(a, 'health') else 100.0,
+        "energy": a.energy,
+        "inventory": a.inventory,
+        "current_action": a.current_action.value if a.current_action else "idle",
+        "skills": a.skills if hasattr(a, 'skills') else {},
+        "personality": a.personality if hasattr(a, 'personality') else {}
+    }
+
+@app.get("/agents/{agent_id}/memories")
+async def get_agent_memories(agent_id: str):
+    """获取智能体记忆"""
+    if not orchestrator or agent_id not in orchestrator.agents:
+        return {"memories": []}
+
+    # 返回空列表，因为模拟模式没有实际记忆
+    return {"memories": []}
 
 @app.get("/events")
 async def get_events():
@@ -113,7 +142,33 @@ async def get_world():
     return {
         "tick": tick_count,
         "day": world.day if world else 1,
-        "size": f"{world.width}x{world.height}" if world else "0x0"
+        "time_of_day": world.time_of_day if world else 0.0,
+        "weather": world.weather if world else "clear",
+        "width": world.width if world else 10,
+        "height": world.height if world else 10
+    }
+
+@app.get("/world/map")
+async def get_world_map():
+    """Return world map data"""
+    if not world:
+        return {"width": 0, "height": 0, "locations": {}}
+
+    locations = {}
+    for pos, location in world.locations.items():
+        key = f"{pos[0]},{pos[1]}"
+        locations[key] = {
+            "position": list(pos),
+            "biome": location.biome.value if hasattr(location.biome, 'value') else str(location.biome),
+            "resources": {k.value if hasattr(k, 'value') else str(k): v for k, v in location.resources.items()},
+            "agents_present": location.agents_present,
+            "buildings": location.buildings
+        }
+
+    return {
+        "width": world.width,
+        "height": world.height,
+        "locations": locations
     }
 
 async def run_simulation():

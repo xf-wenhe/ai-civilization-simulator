@@ -19,9 +19,9 @@ export const ACTION_COLORS: Record<string, string> = {
 };
 
 export const PERSONALITY_LABELS: Record<string, string> = {
-  openness: 'Curiosity',
-  conscientiousness: 'Discipline',
-  extraversion: 'Social',
-  agreeableness: 'Cooperation',
-  neuroticism: 'Sensitivity',
+  openness: '好奇心',
+  conscientiousness: '自律性',
+  extraversion: '外向性',
+  agreeableness: '亲和性',
+  neuroticism: '敏感性',
 };

@@ -31,7 +31,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, isSelected, onClick
 
       <div className="agent-status">
         <div className="status-bar">
-          <label>Health</label>
+          <label>健康值</label>
           <div className="bar">
             <div className="bar-fill health" style={{ width: `${agent.health}%` }} />
           </div>
@@ -39,7 +39,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, isSelected, onClick
         </div>
 
         <div className="status-bar">
-          <label>Energy</label>
+          <label>能量值</label>
           <div className="bar">
             <div className="bar-fill energy" style={{ width: `${agent.energy}%` }} />
           </div>

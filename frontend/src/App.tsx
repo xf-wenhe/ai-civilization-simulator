@@ -6,7 +6,7 @@ import { AgentDetails } from './components/AgentDetails';
 import { Agent, Memory } from './types';
 import './App.css';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'http://localhost:8888';
 
 function App() {
   const { agents, loading: agentsLoading } = useAgents();
@@ -14,17 +14,28 @@ function App() {
   const { worldMap, loading: mapLoading } = useWorldMap();
 
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [selectedAgentDetails, setSelectedAgentDetails] = useState<Agent | null>(null);
   const [agentMemories, setAgentMemories] = useState<Memory[]>([]);
   const [events, setEvents] = useState<string[]>([]);
 
-  const selectedAgent = agents.find((a) => a.id === selectedAgentId) || null;
-
-  // Fetch agent memories when selection changes
+  // Fetch agent details when selection changes
   useEffect(() => {
     if (!selectedAgentId) {
+      setSelectedAgentDetails(null);
       setAgentMemories([]);
       return;
     }
+
+    const fetchAgentDetails = async () => {
+      try {
+        // 获取智能体详细信息
+        const response = await fetch(`${API_BASE}/agents/${selectedAgentId}`);
+        const data = await response.json();
+        setSelectedAgentDetails(data);
+      } catch (error) {
+        console.error('Failed to fetch agent details:', error);
+      }
+    };
 
     const fetchMemories = async () => {
       try {
@@ -36,6 +47,7 @@ function App() {
       }
     };
 
+    fetchAgentDetails();
     fetchMemories();
   }, [selectedAgentId]);
 
@@ -45,7 +57,25 @@ function App() {
       try {
         const response = await fetch(`${API_BASE}/events?limit=20`);
         const data = await response.json();
-        setEvents(data.events || []);
+        // 翻译事件文本
+        const translatedEvents = (data.recent_actions || []).map((event: string) => {
+          return event
+            .replace(/Tick (\d+):/, '时间片 $1:')
+            .replace(/GATHER/g, '采集')
+            .replace(/REST/g, '休息')
+            .replace(/MOVE/g, '移动')
+            .replace(/CRAFT/g, '制作')
+            .replace(/BUILD/g, '建造')
+            .replace(/COMMUNICATE/g, '交流')
+            .replace(/TEACH/g, '教学')
+            .replace(/TRADE/g, '交易')
+            .replace(/Need food/g, '需要食物')
+            .replace(/Need water/g, '需要水')
+            .replace(/Need wood/g, '需要木材')
+            .replace(/Low energy, need to rest/g, '能量低，需要休息')
+            .replace(/\(current: (\d+)\)/g, '(当前: $1)');
+        });
+        setEvents(translatedEvents);
       } catch (error) {
         console.error('Failed to fetch events:', error);
       }
@@ -68,18 +98,18 @@ function App() {
   };
 
   if (agentsLoading || worldLoading) {
-    return <div className="loading">Loading civilization...</div>;
+    return <div className="loading">加载文明中...</div>;
   }
 
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🏛️ AI Civilization Simulator</h1>
+        <h1>🏛️ AI 文明模拟器</h1>
         {worldState && (
           <div className="world-info">
-            <span>Day {worldState.day}</span>
-            <span>Tick {worldState.tick}</span>
-            <span>{worldState.time_of_day.toFixed(1)}h</span>
+            <span>第 {worldState.day} 天</span>
+            <span>时间片 {worldState.tick}</span>
+            <span>{worldState.time_of_day.toFixed(1)} 小时</span>
             <span className="weather">{worldState.weather}</span>
           </div>
         )}
@@ -88,7 +118,7 @@ function App() {
       <div className="app-content">
         <aside className="sidebar-left">
           <div className="agents-panel">
-            <h2>Agents ({agents.length})</h2>
+            <h2>智能体 ({agents.length})</h2>
             <div className="agents-list">
               {agents.map((agent) => (
                 <AgentCard
@@ -111,7 +141,7 @@ function App() {
           />
 
           <div className="events-panel">
-            <h3>Recent Events</h3>
+            <h3>最近事件</h3>
             <div className="events-list">
               {events.map((event, index) => (
                 <div key={index} className="event-item">
@@ -122,16 +152,16 @@ function App() {
           </div>
         </main>
 
-        <aside className="sidebar-right">
-          <AgentDetails
-            agent={selectedAgent}
-            memories={agentMemories}
-            loading={false}
-          />
-        </aside>
-      </div>
+      <aside className="sidebar-right">
+        <AgentDetails
+          agent={selectedAgentDetails}
+          memories={agentMemories}
+          loading={false}
+        />
+      </aside>
     </div>
-  );
+  </div>
+);
 }
 
 export default App;
