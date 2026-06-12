@@ -160,5 +160,17 @@ class Agent:
             memories=memories,
             relationships=relationships,
             current_action=current_action,
-            conversation_history=data["conversation_history"]
+            conversation_history=data["conversation_history"],
+
+            # === 新增：加载新字段 ===
+            hunger=data.get("hunger", 100.0),
+            thirst=data.get("thirst", 100.0),
+            is_alive=data.get("is_alive", True),
+            death_tick=data.get("death_tick"),
+            revival_count=data.get("revival_count", 0),
+            spouse_id=data.get("spouse_id"),
+            relationship_status=data.get("relationship_status", "single"),
+            children=data.get("children", []),
+            pregnancy_start_tick=data.get("pregnancy_start_tick"),
+            home_location=tuple(data["home_location"]) if data.get("home_location") else None,
         )
