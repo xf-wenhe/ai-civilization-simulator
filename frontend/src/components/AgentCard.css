@@ -1,0 +1,112 @@
+.agent-card {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.agent-card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.agent-card.selected {
+  box-shadow: 0 0 0 2px #4169E1;
+}
+
+.agent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.agent-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.agent-id {
+  font-size: 12px;
+  color: #666;
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.agent-position {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.agent-status {
+  margin-bottom: 8px;
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.status-bar label {
+  font-size: 11px;
+  color: #666;
+  width: 50px;
+}
+
+.status-bar span {
+  font-size: 11px;
+  color: #333;
+  width: 40px;
+  text-align: right;
+}
+
+.bar {
+  flex: 1;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.bar-fill.health {
+  background: linear-gradient(90deg, #ff6b6b, #51cf66);
+}
+
+.bar-fill.energy {
+  background: linear-gradient(90deg, #ffd93d, #6bcb77);
+}
+
+.agent-action {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.agent-inventory {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.inventory-item {
+  font-size: 11px;
+  background: #f0f0f0;
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: #333;
+}

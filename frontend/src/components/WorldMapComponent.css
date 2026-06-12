@@ -1,0 +1,71 @@
+.world-map-container {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.map-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
+
+.world-map {
+  position: relative;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  overflow: auto;
+}
+
+.map-cell {
+  position: absolute;
+  border: 0.5px solid rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.map-cell:hover {
+  filter: brightness(1.2);
+}
+
+.map-cell.selected {
+  filter: brightness(1.4);
+}
+
+.agent-marker {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s;
+}
+
+.map-loading {
+  padding: 40px;
+  text-align: center;
+  color: #666;
+}

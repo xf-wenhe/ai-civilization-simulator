@@ -1,0 +1,159 @@
+.agent-details {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.details-title {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.details-section {
+  margin-bottom: 20px;
+}
+
+.details-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.personality-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.personality-item,
+.skill-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.personality-item label,
+.skill-item label {
+  font-size: 12px;
+  color: #666;
+  width: 80px;
+}
+
+.personality-bar,
+.skill-bar {
+  flex: 1;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.personality-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6bcb77, #4dabf7);
+  transition: width 0.3s;
+}
+
+.skill-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9775fa, #f783ac);
+  transition: width 0.3s;
+}
+
+.personality-item span,
+.skill-item span {
+  font-size: 12px;
+  color: #333;
+  width: 40px;
+  text-align: right;
+}
+
+.goals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.goal-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.goal-item.completed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.goal-priority {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  background: #e0e0e0;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.goal-description {
+  font-size: 13px;
+  color: #333;
+}
+
+.memories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memory-item {
+  background: #f9f9f9;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 3px solid #4169E1;
+}
+
+.memory-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.memory-type {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #4169E1;
+}
+
+.memory-time {
+  font-size: 10px;
+  color: #999;
+}
+
+.memory-content {
+  font-size: 12px;
+  color: #333;
+}
+
+.no-memories {
+  padding: 12px;
+  text-align: center;
+  color: #999;
+  font-style: italic;
+}
+
+.agent-details-loading,
+.agent-details-empty {
+  padding: 40px;
+  text-align: center;
+  color: #666;
+}
