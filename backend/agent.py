@@ -107,7 +107,7 @@ class Agent:
             json.dump(self.to_dict(), f, indent=2)
 
     @classmethod
-    def load_state(cls, filepath: str) -> Agent:
+    def load_state(cls, filepath: str) -> 'Agent':
         """Load agent state from JSON file"""
         with open(filepath, 'r') as f:
             data = json.load(f)
