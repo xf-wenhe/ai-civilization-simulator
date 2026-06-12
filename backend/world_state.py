@@ -8,9 +8,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 import json
 import random
-
-
-class BiomeType(Enum):
     """World biome types"""
     FOREST = "forest"
     PLAINS = "plains"

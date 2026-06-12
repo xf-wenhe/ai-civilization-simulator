@@ -6,6 +6,8 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass
 import json
 import os
+import random
+import random  # Add at top of file
 
 
 @dataclass
