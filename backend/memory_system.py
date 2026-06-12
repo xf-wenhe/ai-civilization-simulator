@@ -5,7 +5,6 @@ Provides long-term memory storage and retrieval.
 
 from typing import List, Dict, Optional
 import chromadb
-from chromadb.config import Settings
 from datetime import datetime
 import json
 
@@ -14,11 +13,9 @@ class AgentMemorySystem:
     """Semantic memory system for agents using vector embeddings"""
 
     def __init__(self, persist_directory: str = "./data/chroma"):
-        """Initialize ChromaDB client"""
-        self.client = chromadb.Client(Settings(
-            chroma_db_impl="duckdb+parquet",
-            persist_directory=persist_directory
-        ))
+        """Initialize ChromaDB client with new API"""
+        # 使用新的ChromaDB API
+        self.client = chromadb.PersistentClient(path=persist_directory)
 
         # Create collections for different memory types
         self.episodic_collection = self.client.get_or_create_collection("episodic_memories")
@@ -27,7 +24,6 @@ class AgentMemorySystem:
 
     def store_memory(self, agent_id: str, memory_type: str, content: str,
                     timestamp: int, importance: float, metadata: Dict = None):
-        """Store a memory in the appropriate collection"""
 
         metadata = metadata or {}
         metadata.update({
@@ -49,7 +45,6 @@ class AgentMemorySystem:
 
     def search_memories(self, agent_id: str, query: str, memory_type: str = None,
                        n_results: int = 10) -> List[Dict]:
-        """Search memories semantically"""
 
         if memory_type:
             collections = [self._get_collection(memory_type)]
@@ -76,14 +71,11 @@ class AgentMemorySystem:
                         "distance": search_results['distances'][0][i] if 'distances' in search_results else None
                     })
 
-        # Sort by importance
         results.sort(key=lambda x: x['metadata'].get('importance', 0), reverse=True)
-
         return results[:n_results]
 
     def get_recent_memories(self, agent_id: str, memory_type: str = None,
                            limit: int = 20) -> List[Dict]:
-        """Get recent memories for an agent"""
 
         if memory_type:
             collections = [self._get_collection(memory_type)]
@@ -108,46 +100,10 @@ class AgentMemorySystem:
                         "metadata": collection_results['metadatas'][i]
                     })
 
-        # Sort by timestamp
         results.sort(key=lambda x: x['metadata'].get('timestamp', 0), reverse=True)
-
         return results[:limit]
 
-    def update_memory_importance(self, memory_id: str, new_importance: float):
-        """Update importance score for a memory"""
-
-        # Need to retrieve, delete, and re-add
-        # This is a limitation of ChromaDB - no direct update
-        pass
-
-    def forget_old_memories(self, agent_id: str, keep_last: int = 100):
-        """Remove old, unimportant memories"""
-
-        for collection in [self.episodic_collection, self.semantic_collection, self.procedural_collection]:
-            all_memories = collection.get(
-                where={"agent_id": agent_id}
-            )
-
-            if len(all_memories['ids']) > keep_last:
-                # Sort by importance and timestamp
-                memory_data = [
-                    {
-                        "id": all_memories['ids'][i],
-                        "importance": all_memories['metadatas'][i].get('importance', 0),
-                        "timestamp": all_memories['metadatas'][i].get('timestamp', 0)
-                    }
-                    for i in range(len(all_memories['ids']))
-                ]
-
-                memory_data.sort(key=lambda x: (x['importance'], x['timestamp']), reverse=True)
-
-                # Delete memories not in top `keep_last`
-                ids_to_delete = [m['id'] for m in memory_data[keep_last:]]
-                if ids_to_delete:
-                    collection.delete(ids=ids_to_delete)
-
     def _get_collection(self, memory_type: str):
-        """Get collection by memory type"""
         if memory_type == "episodic":
             return self.episodic_collection
         elif memory_type == "semantic":
@@ -157,7 +113,6 @@ class AgentMemorySystem:
         return None
 
     def export_agent_memories(self, agent_id: str) -> Dict:
-        """Export all memories for an agent"""
         all_memories = {}
 
         for mem_type in ["episodic", "semantic", "procedural"]:
