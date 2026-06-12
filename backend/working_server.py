@@ -122,6 +122,20 @@ async def run_simulation():
 
     print("🚀 模拟循环开始！\n")
 
+    # 尝试加载之前的状态
+    try:
+        if os.path.exists("data/civilization_state.json"):
+            import json
+            with open("data/civilization_state.json", "r") as f:
+                saved_state = json.load(f)
+                tick_count = saved_state.get("tick", 0)
+                action_log = saved_state.get("actions", [])
+                print(f"✓ 加载存档: Tick {tick_count}, {len(action_log)}个历史事件\n")
+    except Exception as e:
+        print(f"⚠️  无存档或加载失败: {e}\n")
+
+    save_counter = 0
+
     while True:
         try:
             # 增加tick
@@ -157,6 +171,12 @@ async def run_simulation():
                     print(f"   🎒 物品: {agent.inventory}")
                     print()
 
+            # 每10个tick保存一次
+            save_counter += 1
+            if save_counter >= 10:
+                save_counter = 0
+                save_civilization_state()
+
             # 每3秒一次
             await asyncio.sleep(3)
 
@@ -165,6 +185,40 @@ async def run_simulation():
             import traceback
             traceback.print_exc()
             await asyncio.sleep(3)
+
+def save_civilization_state():
+    """保存文明状态到文件"""
+    try:
+        import json
+        os.makedirs("data", exist_ok=True)
+
+        state = {
+            "tick": tick_count,
+            "actions": action_log[-100:],  # 保存最近100个事件
+            "world": {
+                "day": world.day if world else 1,
+                "time_of_day": world.time_of_day if world else 0,
+                "weather": world.weather if world else "clear"
+            },
+            "agents": [
+                {
+                    "id": a.id,
+                    "name": a.name,
+                    "position": list(a.position),
+                    "energy": a.energy,
+                    "inventory": a.inventory
+                }
+                for a in orchestrator.agents.values()
+            ] if orchestrator else []
+        }
+
+        with open("data/civilization_state.json", "w") as f:
+            json.dump(state, f, indent=2, ensure_ascii=False)
+
+        print(f"💾 已保存文明状态 (Tick {tick_count})")
+
+    except Exception as e:
+        print(f"⚠️  保存失败: {e}")
 
 if __name__ == "__main__":
     print("\n" + "=" * 70)
