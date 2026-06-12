@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Agent, WorldState, WorldMap } from '../types';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'http://localhost:8888';  // 后端改为8888
 
 export function useWorldState() {
   const [worldState, setWorldState] = useState<WorldState | null>(null);
