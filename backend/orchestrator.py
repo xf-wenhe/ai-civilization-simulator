@@ -193,11 +193,31 @@ Your decisions should reflect your personality traits and current needs."""
         """Heuristic-based decision with personality influence"""
         import random
 
-        # === 新增：死亡检查 ===
+        # === Priority 1: Death check ===
         if not agent.is_alive:
             return {"action": ActionType.REST, "parameters": "", "reasoning": "Agent is dead"}
 
-        # === 新增：主动进食/喝水 ===
+        # === Priority 2: Critical survival (immediate action needed) ===
+        if agent.hunger < 30 or agent.thirst < 30:
+            if agent.thirst < agent.hunger and agent.thirst < 30:
+                # 最critical的需求优先 - 检查是否可以立即喝水
+                location = self.world.get_location(agent.position)
+                can_drink = agent.inventory.get("water", 0) > 0 or (location and location.biome == BiomeType.RIVER)
+                if can_drink:
+                    return {"action": ActionType.DRINK, "parameters": "", "reasoning": f"Thirst critical ({agent.thirst:.0f})"}
+                else:
+                    # 需要去找水
+                    return {"action": ActionType.GATHER, "parameters": "water", "reasoning": f"Thirst critical ({agent.thirst:.0f})"}
+            elif agent.hunger < 30:
+                # 检查是否可以立即吃食物
+                can_eat = agent.inventory.get("food", 0) > 0
+                if can_eat:
+                    return {"action": ActionType.EAT, "parameters": "", "reasoning": f"Hunger critical ({agent.hunger:.0f})"}
+                else:
+                    # 需要去找食物
+                    return {"action": ActionType.GATHER, "parameters": "food", "reasoning": f"Hunger critical ({agent.hunger:.0f})"}
+
+        # === Priority 3: Proactive maintenance ===
         if agent.hunger < 50 and agent.inventory.get("food", 0) > 0:
             return {"action": ActionType.EAT, "parameters": "", "reasoning": "Eating food from inventory"}
 
@@ -206,15 +226,6 @@ Your decisions should reflect your personality traits and current needs."""
             location = self.world.get_location(agent.position)
             if agent.inventory.get("water", 0) > 0 or (location and location.biome == BiomeType.RIVER):
                 return {"action": ActionType.DRINK, "parameters": "", "reasoning": "Drinking water"}
-
-        # === 新增：生存优先 ===
-        if agent.hunger < 30 or agent.thirst < 30:
-            if agent.thirst < agent.hunger and agent.thirst < 30:
-                # 优先解决口渴
-                return {"action": ActionType.GATHER, "parameters": "water", "reasoning": f"Thirst critical ({agent.thirst:.0f})"}
-            elif agent.hunger < 30:
-                # 解决饥饿
-                return {"action": ActionType.GATHER, "parameters": "food", "reasoning": f"Hunger critical ({agent.hunger:.0f})"}
 
         # Priority-based decision making with energy check first
         # 能量低于30强制休息
