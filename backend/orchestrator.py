@@ -15,7 +15,7 @@ except ImportError:
     Anthropic = None
 
 from agent import Agent, ActionType, PersonalityTrait, Goal, Memory, Relationship
-from world_state import WorldState, ResourceType
+from world_state import WorldState, ResourceType, BiomeType
 from memory_system import AgentMemorySystem
 from survival_system import SurvivalSystem
 
@@ -197,6 +197,16 @@ Your decisions should reflect your personality traits and current needs."""
         if not agent.is_alive:
             return {"action": ActionType.REST, "parameters": "", "reasoning": "Agent is dead"}
 
+        # === 新增：主动进食/喝水 ===
+        if agent.hunger < 50 and agent.inventory.get("food", 0) > 0:
+            return {"action": ActionType.EAT, "parameters": "", "reasoning": "Eating food from inventory"}
+
+        if agent.thirst < 50:
+            # 检查是否有水或靠近河流
+            location = self.world.get_location(agent.position)
+            if agent.inventory.get("water", 0) > 0 or (location and location.biome == BiomeType.RIVER):
+                return {"action": ActionType.DRINK, "parameters": "", "reasoning": "Drinking water"}
+
         # === 新增：生存优先 ===
         if agent.hunger < 30 or agent.thirst < 30:
             if agent.thirst < agent.hunger and agent.thirst < 30:
@@ -318,6 +328,11 @@ Your decisions should reflect your personality traits and current needs."""
             return self._execute_rest(agent)
         elif action == ActionType.COMMUNICATE:
             return await self._execute_communicate(agent, params)
+        # === 新增 ===
+        elif action == ActionType.EAT:
+            return self._execute_eat(agent)
+        elif action == ActionType.DRINK:
+            return self._execute_drink(agent)
         else:
             return "Action not implemented"
 
@@ -356,6 +371,20 @@ Your decisions should reflect your personality traits and current needs."""
     def _execute_rest(self, agent: Agent) -> str:
         agent.energy = min(100, agent.energy + 30)
         return f"Rested, energy now {agent.energy:.1f}"
+
+    def _execute_eat(self, agent: Agent) -> str:
+        """执行进食"""
+        success = self.survival_system.eat(agent)
+        if success:
+            return f"Ate food, hunger now {agent.hunger:.0f}"
+        return "No food available"
+
+    def _execute_drink(self, agent: Agent) -> str:
+        """执行喝水"""
+        success = self.survival_system.drink(agent)
+        if success:
+            return f"Drank water, thirst now {agent.thirst:.0f}"
+        return "No water available"
 
     async def _execute_communicate(self, agent: Agent, target_id: str) -> str:
         if target_id not in self.agents:

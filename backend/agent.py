@@ -29,6 +29,9 @@ class ActionType(Enum):
     BUILD = "build"
     TEACH = "teach"
     TRADE = "trade"
+    # === 新增 ===
+    EAT = "eat"
+    DRINK = "drink"
 
 
 @dataclass
