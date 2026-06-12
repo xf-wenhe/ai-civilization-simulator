@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAgents, useWorldState, useWorldMap } from './hooks/useApi';
 import { AgentCard } from './components/AgentCard';
 import { WorldMapComponent } from './components/WorldMapComponent';
