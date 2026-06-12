@@ -82,6 +82,22 @@ class Agent:
     current_action: Optional[ActionType] = None
     conversation_history: List[str] = field(default_factory=list)
 
+    # === 新增：生存系统 ===
+    hunger: float = 100.0           # 饥饿值 0-100
+    thirst: float = 100.0           # 口渴值 0-100
+    is_alive: bool = True           # 生命状态
+    death_tick: Optional[int] = None  # 死亡时间
+    revival_count: int = 0          # 已复活次数
+
+    # === 新增：感情婚姻系统 ===
+    spouse_id: Optional[str] = None  # 配偶ID
+    relationship_status: str = "single"  # single/dating/married
+    children: List[str] = field(default_factory=list)  # 孩子ID
+    pregnancy_start_tick: Optional[int] = None  # 怀孕开始时间
+
+    # === 新增：家庭系统 ===
+    home_location: Optional[tuple[int, int]] = None  # 家的位置
+
     def to_dict(self) -> Dict:
         """Serialize agent state to dict"""
         return {
@@ -97,7 +113,20 @@ class Agent:
             "memories": [{"content": m.content, "timestamp": m.timestamp, "importance": m.importance, "memory_type": m.memory_type} for m in self.memories],
             "relationships": {k: {"trust": v.trust, "friendship": v.friendship, "interactions": v.interactions} for k, v in self.relationships.items()},
             "current_action": self.current_action.value if self.current_action else None,
-            "conversation_history": self.conversation_history
+            "conversation_history": self.conversation_history,
+            # === 新增：生存系统 ===
+            "hunger": self.hunger,
+            "thirst": self.thirst,
+            "is_alive": self.is_alive,
+            "death_tick": self.death_tick,
+            "revival_count": self.revival_count,
+            # === 新增：感情婚姻系统 ===
+            "spouse_id": self.spouse_id,
+            "relationship_status": self.relationship_status,
+            "children": self.children,
+            "pregnancy_start_tick": self.pregnancy_start_tick,
+            # === 新增：家庭系统 ===
+            "home_location": self.home_location
         }
 
     def save_state(self, directory: str):
