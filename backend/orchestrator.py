@@ -17,6 +17,7 @@ except ImportError:
 from agent import Agent, ActionType, PersonalityTrait, Goal, Memory, Relationship
 from world_state import WorldState, ResourceType
 from memory_system import AgentMemorySystem
+from survival_system import SurvivalSystem
 
 
 class EnhancedAgentOrchestrator:
@@ -51,6 +52,9 @@ class EnhancedAgentOrchestrator:
 
         # Initialize memory system
         self.memory_system = AgentMemorySystem(persist_directory="./data/chroma")
+
+        # === 新增：初始化生存系统 ===
+        self.survival_system = SurvivalSystem(world)
 
         # Create initial agents
         for i in range(agent_count):
@@ -189,6 +193,19 @@ Your decisions should reflect your personality traits and current needs."""
         """Heuristic-based decision with personality influence"""
         import random
 
+        # === 新增：死亡检查 ===
+        if not agent.is_alive:
+            return {"action": ActionType.REST, "parameters": "", "reasoning": "Agent is dead"}
+
+        # === 新增：生存优先 ===
+        if agent.hunger < 30 or agent.thirst < 30:
+            if agent.thirst < agent.hunger and agent.thirst < 30:
+                # 优先解决口渴
+                return {"action": ActionType.GATHER, "parameters": "water", "reasoning": f"Thirst critical ({agent.thirst:.0f})"}
+            elif agent.hunger < 30:
+                # 解决饥饿
+                return {"action": ActionType.GATHER, "parameters": "food", "reasoning": f"Hunger critical ({agent.hunger:.0f})"}
+
         # Priority-based decision making with energy check first
         # 能量低于30强制休息
         if agent.energy < 30:
@@ -257,6 +274,14 @@ Your decisions should reflect your personality traits and current needs."""
 
         # Execute action
         result = await self._execute_action(agent, action, params)
+
+        # === 新增：更新生存需求 ===
+        self.survival_system.update_needs(agent, action.value if hasattr(action, 'value') else str(action))
+
+        # === 新增：检查死亡 ===
+        if self.survival_system.check_death(agent, self.world.tick):
+            print(f"💀 {agent.name} 死亡了！原因：健康值归零")
+            return
 
         # Store as episodic memory
         memory_content = f"{action.value.capitalize()} - {reasoning}. Result: {result}"

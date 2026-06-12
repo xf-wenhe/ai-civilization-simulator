@@ -96,6 +96,9 @@ async def get_agents():
             "position": list(a.position),
             "health": a.health if hasattr(a, 'health') else 100.0,
             "energy": a.energy,
+            "hunger": a.hunger if hasattr(a, 'hunger') else 100.0,
+            "thirst": a.thirst if hasattr(a, 'thirst') else 100.0,
+            "is_alive": a.is_alive if hasattr(a, 'is_alive') else True,
             "inventory": a.inventory,
             "current_action": a.current_action.value if a.current_action else "idle"
         })
