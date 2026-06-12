@@ -27,8 +27,21 @@ class EnhancedAgentOrchestrator:
 
         self.world = world
         self.agents: Dict[str, Agent] = {}
-        self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY")) if Anthropic else None
+
+        # Initialize Anthropic client with custom base_url if provided
+        if Anthropic:
+            client_kwargs = {"api_key": os.getenv("ANTHROPIC_API_KEY")}
+            base_url = os.getenv("ANTHROPIC_BASE_URL")
+            if base_url:
+                client_kwargs["base_url"] = base_url
+            self.client = Anthropic(**client_kwargs)
+        else:
+            self.client = None
+
         self.running = False
+
+        # Get model from env or use default
+        self.model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
 
         # Initialize memory system
         self.memory_system = AgentMemorySystem(persist_directory="./data/chroma")
@@ -134,7 +147,7 @@ Your decisions should reflect your personality traits and current needs."""
 
         try:
             response = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model=self.model,
                 max_tokens=400,
                 system=self._build_enhanced_system_prompt(agent),
                 messages=[{"role": "user", "content": "What will you do next?"}]

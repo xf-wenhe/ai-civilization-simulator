@@ -43,7 +43,18 @@ class CommunicationSystem:
 
     def __init__(self):
         self.conversations: Dict[str, Conversation] = {}  # conversation_id -> Conversation
-        self.client = Anthropic() if Anthropic else None
+        if Anthropic:
+            import os
+            from dotenv import load_dotenv
+            load_dotenv()
+            client_kwargs = {"api_key": os.getenv("ANTHROPIC_API_KEY")}
+            base_url = os.getenv("ANTHROPIC_BASE_URL")
+            if base_url:
+                client_kwargs["base_url"] = base_url
+            self.client = Anthropic(**client_kwargs)
+            self.model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
+        else:
+            self.client = None
 
     def generate_conversation_id(self, agent_ids: List[str]) -> str:
         """Generate unique conversation ID"""
@@ -102,7 +113,7 @@ Make the conversation interesting and reflect their unique personalities and cur
 
         try:
             response = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model=self.model,
                 max_tokens=600,
                 messages=[{"role": "user", "content": context}]
             )
