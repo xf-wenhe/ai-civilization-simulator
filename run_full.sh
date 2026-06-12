@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# 最终启动脚本 - 经过完整测试
+# 完整功能启动脚本 - 智能体真正会行动
 echo "========================================"
-echo "🚀 AI Civilization Simulator"
+echo "🚀 AI Civilization Simulator - 完整版"
 echo "========================================"
 echo ""
 
-# 停止可能存在的服务
+# 清理旧进程
 echo "🧹 清理旧进程..."
 kill -9 $(lsof -ti:8000) 2>/dev/null
 kill -9 $(lsof -ti:8080) 2>/dev/null
-sleep 1
+sleep 2
 echo "✓ 清理完成"
 echo ""
 
@@ -44,15 +44,19 @@ python3 -c "from agent import Agent; print('  ✓ agent模块')" || exit 1
 python3 -c "from world_state import WorldState; print('  ✓ world_state模块')" || exit 1
 python3 -c "from memory_system import AgentMemorySystem; print('  ✓ memory_system模块')" || exit 1
 python3 -c "from orchestrator import EnhancedAgentOrchestrator; print('  ✓ orchestrator模块')" || exit 1
-python3 -c "from test_server import app; print('  ✓ test_server模块')" || exit 1
 
 echo ""
 echo "✅ 后端准备完成"
 echo ""
 
-# 启动后端
-echo "🌐 启动后端API服务 (http://localhost:8000)..."
-python3 test_server.py > /tmp/civilization_backend.log 2>&1 &
+# 启动完整功能的后端
+echo "🌐 启动完整功能后端 (http://localhost:8000)..."
+echo "  功能："
+echo "    - 真实模拟循环"
+echo "    - 智能体实时行动"
+echo "    - 事件记录"
+echo "    - WebSocket实时推送"
+python3 full_server.py > /tmp/civilization_full.log 2>&1 &
 SERVER_PID=$!
 echo "  PID: $SERVER_PID"
 sleep 5
@@ -60,15 +64,13 @@ sleep 5
 # 检查启动状态
 if curl -s http://localhost:8000/ > /dev/null 2>&1; then
     echo "  ✓ API服务器响应正常"
-
-    # 显示初始化输出
     echo ""
     echo "📊 启动日志:"
-    tail -30 /tmp/civilization_backend.log
+    tail -20 /tmp/civilization_full.log
 else
     echo "  ❌ API服务器启动失败"
     echo "  查看日志:"
-    cat /tmp/civilization_backend.log
+    cat /tmp/civilization_full.log
     exit 1
 fi
 
@@ -80,7 +82,7 @@ echo "🎨 准备前端..."
 cd frontend || exit 1
 
 if [ ! -d "node_modules" ]; then
-    echo "📦 安装前端依赖（首次需要几分钟）..."
+    echo "📦 安装前端依赖..."
     npm install --silent || exit 1
 fi
 
@@ -105,27 +107,24 @@ echo "   前端界面: http://localhost:8080"
 echo "   后端API: http://localhost:8000"
 echo ""
 echo "📊 测试API:"
-echo "   curl http://localhost:8000/"
 echo "   curl http://localhost:8000/agents"
+echo "   curl http://localhost:8000/events"
 echo "   curl http://localhost:8000/world"
 echo ""
-echo "📝 日志文件:"
-echo "   后端: /tmp/civilization_backend.log"
-echo "   前端: /tmp/civilization_frontend.log"
-echo ""
-echo "💡 提示:"
-echo "   - 按 Ctrl+C 停止所有服务"
-echo "   - 查看后端日志: tail -f /tmp/civilization_backend.log"
+echo "💡 特性:"
+echo "   ✓ 智能体每5秒行动一次"
+echo "   ✓ 实时事件记录"
+echo "   ✓ WebSocket实时推送"
+echo "   ✓ 前端自动更新"
 echo ""
 echo "========================================"
 
-# 等待
+# 等待并显示实时日志
 trap "echo ''; echo '🛑 停止所有服务...'; kill $SERVER_PID $FRONTEND_PID 2>/dev/null; echo '✓ 服务已停止'; exit 0" INT TERM
 
-# 显示后端日志（实时）
 echo ""
 echo "📺 实时日志 (Ctrl+C停止):"
 echo "========================================"
-tail -f /tmp/civilization_backend.log &
+tail -f /tmp/civilization_full.log &
 
 wait
