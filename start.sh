@@ -73,7 +73,7 @@ echo ""
 echo "✅ All systems started!"
 echo ""
 echo "📊 Backend API: http://localhost:8000"
-echo "🖥️  Frontend: http://localhost:3000"
+echo "🖥️  Frontend: http://localhost:8080"
 echo ""
 echo "Press Ctrl+C to stop all servers..."
 

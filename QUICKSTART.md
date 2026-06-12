@@ -50,7 +50,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000 to see:
+Open http://localhost:8080 to see:
 - Real-time world map with agent positions
 - Agent cards showing status, inventory, actions
 - Detailed agent view with personality, goals, memories
