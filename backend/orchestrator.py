@@ -28,20 +28,26 @@ class EnhancedAgentOrchestrator:
         self.world = world
         self.agents: Dict[str, Agent] = {}
 
+        # Check if using simulation mode
+        self.use_simulation = os.getenv("USE_SIMULATION", "false").lower() == "true"
+
         # Initialize Anthropic client with custom base_url if provided
-        if Anthropic:
+        if Anthropic and not self.use_simulation:
             client_kwargs = {"api_key": os.getenv("ANTHROPIC_API_KEY")}
             base_url = os.getenv("ANTHROPIC_BASE_URL")
             if base_url:
                 client_kwargs["base_url"] = base_url
             self.client = Anthropic(**client_kwargs)
+            self.model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
+            print(f"✓ API Client initialized (model: {self.model})")
         else:
             self.client = None
+            if self.use_simulation:
+                print("✓ Running in SIMULATION mode (no API calls)")
+            else:
+                print("⚠️  No API client available, using simulation mode")
 
         self.running = False
-
-        # Get model from env or use default
-        self.model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022")
 
         # Initialize memory system
         self.memory_system = AgentMemorySystem(persist_directory="./data/chroma")
@@ -142,7 +148,8 @@ Your decisions should reflect your personality traits and current needs."""
     async def get_agent_decision_with_memory(self, agent: Agent) -> Dict:
         """Get decision using Claude with memory context"""
 
-        if not self.client:
+        # Always use simulation if USE_SIMULATION=true
+        if self.use_simulation or not self.client:
             return self._simulate_decision(agent)
 
         try:
@@ -179,20 +186,59 @@ Your decisions should reflect your personality traits and current needs."""
         return action_data
 
     def _simulate_decision(self, agent: Agent) -> Dict:
-        """Heuristic-based decision"""
+        """Heuristic-based decision with personality influence"""
+        import random
+
+        # Priority-based decision making
         if agent.energy < 30:
-            return {"action": ActionType.REST, "parameters": "", "reasoning": "Low energy"}
+            return {"action": ActionType.REST, "parameters": "", "reasoning": "Low energy, need to rest"}
 
-        if agent.inventory.get("food", 0) < 3:
-            return {"action": ActionType.GATHER, "parameters": "food", "reasoning": "Need food"}
+        # Check inventory and gather if needed
+        food_count = agent.inventory.get("food", 0)
+        if food_count < 3:
+            # Personality affects gathering behavior
+            if agent.personality[PersonalityTrait.OPENNESS] > 0.7:
+                # High openness - try different resources
+                resources = ["food", "wood", "water"]
+                resource = random.choice(resources)
+            else:
+                resource = "food"
+            return {"action": ActionType.GATHER, "parameters": resource, "reasoning": f"Need {resource} (current: {food_count})"}
 
+        # Social interaction for extraverted agents
         location = self.world.get_location(agent.position)
         if location and len(location.agents_present) > 1:
             others = [a for a in location.agents_present if a != agent.id]
-            if others and agent.personality[PersonalityTrait.EXTRAVERSION] > 0.6:
-                return {"action": ActionType.COMMUNICATE, "parameters": others[0], "reasoning": "Socializing"}
+            extraversion = agent.personality[PersonalityTrait.EXTRAVERSION]
 
-        return {"action": ActionType.MOVE, "parameters": random.choice(["north", "south", "east", "west"]), "reasoning": "Exploring"}
+            if others and extraversion > 0.6:
+                # High extraversion - actively communicate
+                target = random.choice(others)
+                return {"action": ActionType.COMMUNICATE, "parameters": target, "reasoning": f"Social interaction (extraversion: {extraversion:.2f})"}
+            elif others and extraversion > 0.4 and random.random() < 0.5:
+                # Medium extraversion - sometimes communicate
+                target = random.choice(others)
+                return {"action": ActionType.COMMUNICATE, "parameters": target, "reasoning": "Opportunistic socializing"}
+
+        # Exploration vs crafting based on personality
+        openness = agent.personality[PersonalityTrait.OPENNESS]
+        conscientiousness = agent.personality[PersonalityTrait.CONSCIENTIOUSNESS]
+
+        if openness > 0.7 and random.random() < 0.6:
+            # High openness - explore
+            directions = ["north", "south", "east", "west"]
+            return {"action": ActionType.MOVE, "parameters": random.choice(directions), "reasoning": f"Exploring (openness: {openness:.2f})"}
+
+        if conscientiousness > 0.6 and agent.inventory.get("wood", 0) >= 3:
+            # High conscientiousness - craft/build
+            return {"action": ActionType.CRAFT, "parameters": "tool", "reasoning": f"Crafting (conscientiousness: {conscientiousness:.2f})"}
+
+        # Default: explore or gather based on personality
+        if random.random() < 0.5:
+            directions = ["north", "south", "east", "west"]
+            return {"action": ActionType.MOVE, "parameters": random.choice(directions), "reasoning": "Random exploration"}
+        else:
+            return {"action": ActionType.GATHER, "parameters": "food", "reasoning": "Gathering food"}
 
     async def execute_action_and_learn(self, agent: Agent, action_data: Dict):
         """Execute action and store in memory"""
