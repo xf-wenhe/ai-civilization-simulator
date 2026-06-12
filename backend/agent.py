@@ -3,7 +3,7 @@ Agent class for AI civilization simulator.
 Each agent has personality, goals, memory, and can take autonomous actions.
 """
 
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 import json
@@ -67,7 +67,7 @@ class Agent:
     personality: Dict[PersonalityTrait, float]  # Trait -> value (0-1)
 
     # State
-    position: tuple[int, int] = (0, 0)
+    position: Tuple[int, int] = (0, 0)
     health: float = 100.0
     energy: float = 100.0
     inventory: Dict[str, int] = field(default_factory=dict)
@@ -96,7 +96,7 @@ class Agent:
     pregnancy_start_tick: Optional[int] = None  # 怀孕开始时间
 
     # === 新增：家庭系统 ===
-    home_location: Optional[tuple[int, int]] = None  # 家的位置
+    home_location: Optional[Tuple[int, int]] = None  # 家的位置
 
     def to_dict(self) -> Dict:
         """Serialize agent state to dict"""
