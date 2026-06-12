@@ -189,8 +189,14 @@ Your decisions should reflect your personality traits and current needs."""
         """Heuristic-based decision with personality influence"""
         import random
 
-        # Priority-based decision making
+        # Priority-based decision making with energy check first
+        # 能量低于30强制休息
         if agent.energy < 30:
+            return {"action": ActionType.REST, "parameters": "", "reasoning": "Low energy, need to rest"}
+
+        # 能量恢复后才能继续其他行动
+        if agent.energy < 50:
+            # 能量低于50也倾向于休息
             return {"action": ActionType.REST, "parameters": "", "reasoning": "Low energy, need to rest"}
 
         # Check inventory and gather if needed
