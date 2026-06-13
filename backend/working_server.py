@@ -223,29 +223,34 @@ async def run_simulation():
 
             # 让每个智能体行动
             if orchestrator:
-                for agent in orchestrator.agents.values():
-                    # === 新增：死亡检查和复活 ===
-                    if not agent.is_alive:
-                        if agent.revival_count < 1:
-                            # 获取所有建筑
-                            buildings = []
-                            for pos, location in world.locations.items():
-                                for building_id in location.buildings:
-                                    # 从orchestrator的building_system获取建筑信息
-                                    if hasattr(orchestrator, 'building_system'):
-                                        building = orchestrator.building_system.get_building(building_id)
-                                        if building:
-                                            buildings.append({
-                                                "type": building.building_type.value if hasattr(building.building_type, 'value') else str(building.building_type),
-                                                "position": building.position
-                                            })
+                # === 新增：死亡检查和复活 ===
+                # 先收集所有建筑（避免重复构建）
+                buildings = []
+                for pos, location in world.locations.items():
+                    for building_id in location.buildings:
+                        # 从orchestrator的building_system获取建筑信息
+                        if hasattr(orchestrator, 'building_system'):
+                            building = orchestrator.building_system.get_building(building_id)
+                            if building:
+                                buildings.append({
+                                    "type": building.building_type.value if hasattr(building.building_type, 'value') else str(building.building_type),
+                                    "position": building.position
+                                })
 
+                for agent in orchestrator.agents.values():
+                    # 检查智能体是否死亡
+                    if not getattr(agent, 'is_alive', True):
+                        # 检查是否可以复活
+                        if getattr(agent, 'revival_count', 0) < 1:
                             # 尝试复活
                             if orchestrator.survival_system.revive(agent, buildings):
                                 action_log.append(f"Tick {tick_count}: 💀➡️❤️ {agent.name} 复活了！")
                                 print(f"💀➡️❤️ {agent.name} 在位置 {agent.position} 复活了！")
                                 print(f"   ❤️ 健康: {agent.health}, ⚡ 能量: {agent.energy}")
                                 print(f"   🍖 饥饿: {agent.hunger}, 💧 口渴: {agent.thirst}")
+                            else:
+                                # 复活失败，跳过这个智能体
+                                continue
                         else:
                             # 已经复活过，跳过这个智能体
                             continue
