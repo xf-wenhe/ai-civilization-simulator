@@ -4,8 +4,16 @@ export interface Agent {
   position: [number, number];
   health: number;
   energy: number;
+  hunger: number;
+  thirst: number;
+  is_alive: boolean;
+  revival_count: number;
   inventory: Record<string, number>;
   current_action: string | null;
+  spouse_id?: string;
+  relationship_status: string;
+  children: string[];
+  home_location?: [number, number];
   skills?: Record<string, number>;
   personality?: Record<string, number>;
   goals?: Array<{
