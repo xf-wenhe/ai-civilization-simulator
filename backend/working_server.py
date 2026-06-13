@@ -246,7 +246,9 @@ async def run_simulation():
                                 if child:
                                     # 将孩子添加到世界
                                     orchestrator.agents[child.id] = child
-                                    world.locations[child.position].agents_present.append(child.id)
+                                    # 添加位置验证
+                                    if child.position in world.locations:
+                                        world.locations[child.position].agents_present.append(child.id)
                                     action_log.append(f"Tick {tick_count}: 👶 {child.name} 出生了！")
                                     print(f"👶 {agent.name} 和 {spouse.name} 生下了 {child.name}！")
 

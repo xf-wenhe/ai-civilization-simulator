@@ -472,10 +472,17 @@ Your decisions should reflect your personality traits and current needs."""
         # 确定互动类型
         dialogue_type = self._determine_dialogue_type(agent, target)
 
-        # 更新关系
+        # 更新关系 - 双向更新
         relationship_stage = self.reproduction_system.update_relationship(
             agent,
             target_id,
+            interaction_type="friendly" if dialogue_type != "conflict" else "conflict"
+        )
+
+        # 添加目标智能体的关系更新（双向性）
+        self.reproduction_system.update_relationship(
+            target,
+            agent.id,
             interaction_type="friendly" if dialogue_type != "conflict" else "conflict"
         )
 
@@ -491,10 +498,10 @@ Your decisions should reflect your personality traits and current needs."""
         print(f"💬 {agent.name}: {dialogue}")
 
         # === 新增：检查求婚 ===
-        # 如果是恋爱关系且有房屋，尝试求婚
+        # 如果是恋爱关系且有房屋，尝试求婚（添加概率检查）
         if relationship_stage == "恋爱":
             can_propose, reason = self.reproduction_system.can_propose_marriage(agent, target)
-            if can_propose:
+            if can_propose and random.random() < 0.1:  # 10%概率求婚，保留智能体决策权
                 # 求婚成功
                 success = self.reproduction_system.marry(agent, target)
                 if success:
