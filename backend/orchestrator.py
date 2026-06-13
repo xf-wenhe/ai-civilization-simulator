@@ -18,6 +18,7 @@ from agent import Agent, ActionType, PersonalityTrait, Goal, Memory, Relationshi
 from world_state import WorldState, ResourceType, BiomeType
 from memory_system import AgentMemorySystem
 from survival_system import SurvivalSystem
+from dialogue_generator import DialogueGenerator
 
 
 class EnhancedAgentOrchestrator:
@@ -55,6 +56,9 @@ class EnhancedAgentOrchestrator:
 
         # === 新增：初始化生存系统 ===
         self.survival_system = SurvivalSystem(world)
+
+        # === 新增：初始化对话生成器 ===
+        self.dialogue_generator = DialogueGenerator()
 
         # Create initial agents
         for i in range(agent_count):
@@ -255,8 +259,8 @@ Your decisions should reflect your personality traits and current needs."""
             others = [a for a in location.agents_present if a != agent.id]
             extraversion = agent.personality[PersonalityTrait.EXTRAVERSION]
 
-            if others and extraversion > 0.6:
-                # High extraversion - actively communicate
+            # === 降低触发条件 ===
+            if others and extraversion > 0.3:  # 从0.6降到0.3
                 target = random.choice(others)
                 return {"action": ActionType.COMMUNICATE, "parameters": target, "reasoning": f"Social interaction (extraversion: {extraversion:.2f})"}
             elif others and extraversion > 0.4 and random.random() < 0.5:
@@ -407,6 +411,7 @@ Your decisions should reflect your personality traits and current needs."""
         if target_id not in (location.agents_present if location else []):
             return f"{target.name} is not nearby"
 
+        # 初始化关系
         if target_id not in agent.relationships:
             agent.relationships[target_id] = {
                 "agent_id": target_id,
@@ -415,15 +420,45 @@ Your decisions should reflect your personality traits and current needs."""
                 "interactions": 0
             }
 
+        # 增加互动次数
         agent.relationships[target_id]["interactions"] += 1
 
+        # === 新增：生成对话 ===
+        dialogue_type = self._determine_dialogue_type(agent, target)
+        context = f"在{location.biome.value if location else '未知'}相遇"
+
+        dialogue = self.dialogue_generator.generate_dialogue(
+            agent,
+            target,
+            context,
+            dialogue_type
+        )
+
+        print(f"💬 {agent.name}: {dialogue}")
+
+        # === 更新关系 ===
         if agent.personality[PersonalityTrait.AGREEABLENESS] > 0.5:
             agent.relationships[target_id]["friendship"] = min(
                 1.0,
                 agent.relationships[target_id]["friendship"] + 0.1
             )
 
-        return f"Communicated with {target.name}"
+        return f"Communicated with {target.name}: {dialogue}"
+
+    def _determine_dialogue_type(self, agent: Agent, target: Agent) -> str:
+        """确定对话类型"""
+
+        if target.id not in agent.relationships:
+            return "greeting"
+
+        relationship = agent.relationships[target.id]
+
+        if relationship["friendship"] >= 0.8 and relationship["trust"] >= 0.7:
+            return "romantic"
+        elif relationship["friendship"] >= 0.5:
+            return "friendly"
+        else:
+            return "greeting"
 
     def _calculate_importance(self, action: ActionType, result: str) -> float:
         """Calculate memory importance"""
