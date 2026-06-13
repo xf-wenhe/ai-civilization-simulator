@@ -413,15 +413,15 @@ Your decisions should reflect your personality traits and current needs."""
 
         # 初始化关系
         if target_id not in agent.relationships:
-            agent.relationships[target_id] = {
-                "agent_id": target_id,
-                "trust": 0.0,
-                "friendship": 0.0,
-                "interactions": 0
-            }
+            agent.relationships[target_id] = Relationship(
+                agent_id=target_id,
+                trust=0.0,
+                friendship=0.0,
+                interactions=0
+            )
 
         # 增加互动次数
-        agent.relationships[target_id]["interactions"] += 1
+        agent.relationships[target_id].interactions += 1
 
         # === 新增：生成对话 ===
         dialogue_type = self._determine_dialogue_type(agent, target)
@@ -437,11 +437,18 @@ Your decisions should reflect your personality traits and current needs."""
         print(f"💬 {agent.name}: {dialogue}")
 
         # === 更新关系 ===
+        # 更新友谊值
         if agent.personality[PersonalityTrait.AGREEABLENESS] > 0.5:
-            agent.relationships[target_id]["friendship"] = min(
+            agent.relationships[target_id].friendship = min(
                 1.0,
-                agent.relationships[target_id]["friendship"] + 0.1
+                agent.relationships[target_id].friendship + 0.1
             )
+
+        # 更新信任值
+        agent.relationships[target_id].trust = min(
+            1.0,
+            agent.relationships[target_id].trust + 0.05
+        )
 
         return f"Communicated with {target.name}: {dialogue}"
 
@@ -453,9 +460,9 @@ Your decisions should reflect your personality traits and current needs."""
 
         relationship = agent.relationships[target.id]
 
-        if relationship["friendship"] >= 0.8 and relationship["trust"] >= 0.7:
+        if relationship.friendship >= 0.8 and relationship.trust >= 0.7:
             return "romantic"
-        elif relationship["friendship"] >= 0.5:
+        elif relationship.friendship >= 0.5:
             return "friendly"
         else:
             return "greeting"
