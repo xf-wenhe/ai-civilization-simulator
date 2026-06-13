@@ -286,7 +286,7 @@ Your decisions should reflect your personality traits and current needs."""
         if conscientiousness > 0.7:
             # 检查是否需要水井
             wells = self.building_system.get_nearby_buildings(agent.position, BuildingType.WELL)
-            if not wells and agent.inventory.get("stone", 0) >= 10:
+            if not wells and agent.inventory.get("stone", 0) >= 10 and agent.inventory.get("wood", 0) >= 5:
                 return {"action": ActionType.BUILD, "parameters": "well:1", "reasoning": "Building well for water"}
 
         if openness > 0.7 and random.random() < 0.6:
@@ -424,6 +424,9 @@ Your decisions should reflect your personality traits and current needs."""
         """执行建造"""
 
         # 解析参数: "house:1" 或 "well:2"
+        if not params or not params.strip():
+            return "Build requires parameters (e.g., 'house:1' or 'well:1')"
+
         try:
             parts = params.split(":")
             building_type_str = parts[0].lower()
@@ -433,12 +436,15 @@ Your decisions should reflect your personality traits and current needs."""
         except (ValueError, IndexError):
             return f"Invalid building parameters: {params}"
 
-        building = self.building_system.build(
-            agent,
-            building_type,
-            level,
-            self.world.tick
-        )
+        try:
+            building = self.building_system.build(
+                agent,
+                building_type,
+                level,
+                self.world.tick
+            )
+        except Exception as e:
+            return f"Build error: {str(e)}"
 
         if building:
             effect = self.building_system.get_building_effect(building)
