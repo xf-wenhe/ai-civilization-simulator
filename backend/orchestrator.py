@@ -19,6 +19,7 @@ from world_state import WorldState, ResourceType, BiomeType
 from memory_system import AgentMemorySystem
 from survival_system import SurvivalSystem
 from dialogue_generator import DialogueGenerator
+from building_system import BuildingSystem, BuildingType
 
 
 class EnhancedAgentOrchestrator:
@@ -59,6 +60,9 @@ class EnhancedAgentOrchestrator:
 
         # === 新增：初始化对话生成器 ===
         self.dialogue_generator = DialogueGenerator()
+
+        # === 新增：初始化建筑系统 ===
+        self.building_system = BuildingSystem(world)
 
         # Create initial agents
         for i in range(agent_count):
@@ -272,6 +276,19 @@ Your decisions should reflect your personality traits and current needs."""
         openness = agent.personality[PersonalityTrait.OPENNESS]
         conscientiousness = agent.personality[PersonalityTrait.CONSCIENTIOUSNESS]
 
+        # === 新增：建筑需求 ===
+        # 结婚但无房，优先建造
+        if hasattr(agent, 'spouse_id') and agent.spouse_id and not agent.home_location:
+            if agent.inventory.get("wood", 0) >= 10 and agent.inventory.get("stone", 0) >= 5:
+                return {"action": ActionType.BUILD, "parameters": "house:1", "reasoning": "Building house for family"}
+
+        # 高尽责性智能体倾向于建造
+        if conscientiousness > 0.7:
+            # 检查是否需要水井
+            wells = self.building_system.get_nearby_buildings(agent.position, BuildingType.WELL)
+            if not wells and agent.inventory.get("stone", 0) >= 10:
+                return {"action": ActionType.BUILD, "parameters": "well:1", "reasoning": "Building well for water"}
+
         if openness > 0.7 and random.random() < 0.6:
             # High openness - explore
             directions = ["north", "south", "east", "west"]
@@ -348,6 +365,8 @@ Your decisions should reflect your personality traits and current needs."""
             return self._execute_eat(agent)
         elif action == ActionType.DRINK:
             return self._execute_drink(agent)
+        elif action == ActionType.BUILD:
+            return self._execute_build(agent, params)
         else:
             return "Action not implemented"
 
@@ -400,6 +419,34 @@ Your decisions should reflect your personality traits and current needs."""
         if success:
             return f"Drank water, thirst now {agent.thirst:.0f}"
         return "No water available"
+
+    def _execute_build(self, agent: Agent, params: str) -> str:
+        """执行建造"""
+
+        # 解析参数: "house:1" 或 "well:2"
+        try:
+            parts = params.split(":")
+            building_type_str = parts[0].lower()
+            level = int(parts[1]) if len(parts) > 1 else 1
+
+            building_type = BuildingType(building_type_str)
+        except (ValueError, IndexError):
+            return f"Invalid building parameters: {params}"
+
+        building = self.building_system.build(
+            agent,
+            building_type,
+            level,
+            self.world.tick
+        )
+
+        if building:
+            effect = self.building_system.get_building_effect(building)
+            log = f"建造了{building.name}（{effect}）"
+            print(f"🏠 {agent.name} {log}")
+            return log
+        else:
+            return "建造失败"
 
     async def _execute_communicate(self, agent: Agent, target_id: str) -> str:
         if target_id not in self.agents:
