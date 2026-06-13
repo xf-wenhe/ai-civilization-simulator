@@ -1,6 +1,7 @@
 import React from 'react';
 import { Agent } from '../types';
 import { ACTION_COLORS } from '../constants';
+import { SurvivalBars } from './SurvivalBars';
 import './AgentCard.css';
 
 interface AgentCardProps {
@@ -29,23 +30,12 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, isSelected, onClick
         📍 ({agent.position[0]}, {agent.position[1]})
       </div>
 
-      <div className="agent-status">
-        <div className="status-bar">
-          <label>健康值</label>
-          <div className="bar">
-            <div className="bar-fill health" style={{ width: `${agent.health}%` }} />
-          </div>
-          <span>{agent.health.toFixed(0)}%</span>
-        </div>
-
-        <div className="status-bar">
-          <label>能量值</label>
-          <div className="bar">
-            <div className="bar-fill energy" style={{ width: `${agent.energy}%` }} />
-          </div>
-          <span>{agent.energy.toFixed(0)}%</span>
-        </div>
-      </div>
+      <SurvivalBars
+        health={agent.health}
+        energy={agent.energy}
+        hunger={agent.hunger}
+        thirst={agent.thirst}
+      />
 
       {agent.current_action && (
         <div className="agent-action" style={{ color: actionColor }}>
@@ -60,6 +50,21 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, isSelected, onClick
               {resource}: {count}
             </span>
           ))}
+        </div>
+      )}
+
+      {(agent.spouse_id || agent.children.length > 0) && (
+        <div className="agent-family">
+          {agent.spouse_id && (
+            <div className="agent-family-item">
+              💑 配偶: #{agent.spouse_id.split('_')[1]}
+            </div>
+          )}
+          {agent.children.length > 0 && (
+            <div className="agent-family-item">
+              👶 孩子: {agent.children.map(childId => `#${childId.split('_')[1]}`).join(', ')}
+            </div>
+          )}
         </div>
       )}
     </div>

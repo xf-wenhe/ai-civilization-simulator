@@ -110,3 +110,33 @@
   border-radius: 4px;
   color: #333;
 }
+
+.survival-bars {
+  margin-bottom: 8px;
+}
+
+.bar-value {
+  font-size: 11px;
+  color: #333;
+  width: 50px;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.agent-family {
+  font-size: 11px;
+  color: #666;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.agent-family-item {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
