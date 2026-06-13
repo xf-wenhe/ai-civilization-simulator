@@ -67,13 +67,24 @@ function App() {
             .replace(/CRAFT/g, '制作')
             .replace(/BUILD/g, '建造')
             .replace(/COMMUNICATE/g, '交流')
+            .replace(/EAT/g, '进食')
+            .replace(/DRINK/g, '喝水')
             .replace(/TEACH/g, '教学')
             .replace(/TRADE/g, '交易')
             .replace(/Need food/g, '需要食物')
             .replace(/Need water/g, '需要水')
             .replace(/Need wood/g, '需要木材')
             .replace(/Low energy, need to rest/g, '能量低，需要休息')
-            .replace(/\(current: (\d+)\)/g, '(当前: $1)');
+            .replace(/\(current: (\d+)\)/g, '(当前: $1)')
+            // === 新增翻译 ===
+            .replace(/结婚了/g, '举办了婚礼 💒')
+            .replace(/怀孕了/g, '怀孕了 🤰')
+            .replace(/生下了/g, '生下了 👶')
+            .replace(/建造了茅屋/g, '建造了茅屋 🏠')
+            .replace(/建造了木屋/g, '建造了木屋 🏠')
+            .replace(/建造了水井/g, '建造了水井 ⛲')
+            .replace(/复活/g, '复活 ⚡')
+            .replace(/死亡/g, '去世 💀');
         });
         setEvents(translatedEvents);
       } catch (error) {
