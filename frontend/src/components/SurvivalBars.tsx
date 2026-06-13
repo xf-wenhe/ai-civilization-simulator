@@ -13,7 +13,7 @@ export const SurvivalBars: React.FC<SurvivalBarsProps> = ({
   hunger,
   thirst
 }) => {
-  const getBarColor = (value: number, type: 'hunger' | 'thirst'): string => {
+  const getBarColor = (value: number, type: 'hunger' | 'thirst' | 'health' | 'energy'): string => {
     // For hunger and thirst: high values are bad (red), low values are good (green)
     if (type === 'hunger' || type === 'thirst') {
       if (value >= 70) return '#e74c3c'; // Red - critical
@@ -38,8 +38,15 @@ export const SurvivalBars: React.FC<SurvivalBarsProps> = ({
   return (
     <div className="survival-bars">
       <div className="status-bar">
-        <label>🍎 饥饿</label>
-        <div className="bar">
+        <label id="hunger-label">🍎 饥饿</label>
+        <div
+          className="bar"
+          role="progressbar"
+          aria-labelledby="hunger-label"
+          aria-valuenow={hunger}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
           <div
             className="bar-fill"
             style={{
@@ -54,8 +61,15 @@ export const SurvivalBars: React.FC<SurvivalBarsProps> = ({
       </div>
 
       <div className="status-bar">
-        <label>💧 干渴</label>
-        <div className="bar">
+        <label id="thirst-label">💧 干渴</label>
+        <div
+          className="bar"
+          role="progressbar"
+          aria-labelledby="thirst-label"
+          aria-valuenow={thirst}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
           <div
             className="bar-fill"
             style={{
@@ -70,8 +84,15 @@ export const SurvivalBars: React.FC<SurvivalBarsProps> = ({
       </div>
 
       <div className="status-bar">
-        <label>❤️ 健康</label>
-        <div className="bar">
+        <label id="health-label">❤️ 健康</label>
+        <div
+          className="bar"
+          role="progressbar"
+          aria-labelledby="health-label"
+          aria-valuenow={health}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
           <div
             className="bar-fill"
             style={{
@@ -84,8 +105,15 @@ export const SurvivalBars: React.FC<SurvivalBarsProps> = ({
       </div>
 
       <div className="status-bar">
-        <label>⚡ 能量</label>
-        <div className="bar">
+        <label id="energy-label">⚡ 能量</label>
+        <div
+          className="bar"
+          role="progressbar"
+          aria-labelledby="energy-label"
+          aria-valuenow={energy}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
           <div
             className="bar-fill"
             style={{

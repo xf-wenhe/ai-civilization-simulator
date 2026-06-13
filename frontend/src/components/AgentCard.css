@@ -82,14 +82,6 @@
   transition: width 0.3s;
 }
 
-.bar-fill.health {
-  background: linear-gradient(90deg, #ff6b6b, #51cf66);
-}
-
-.bar-fill.energy {
-  background: linear-gradient(90deg, #ffd93d, #6bcb77);
-}
-
 .agent-action {
   font-size: 12px;
   font-weight: 600;
