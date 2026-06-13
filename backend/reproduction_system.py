@@ -187,6 +187,11 @@ class ReproductionSystem:
     ) -> Optional[Agent]:
         """生成孩子"""
 
+        # 验证配偶关系
+        if parent1.spouse_id != parent2.id or parent2.spouse_id != parent1.id:
+            print(f"⚠️ 无法生育: 不是配偶关系")
+            return None
+
         # 性格遗传（50%父母平均 + 50%随机）
         personality = {}
         for trait in PersonalityTrait:
@@ -206,8 +211,8 @@ class ReproductionSystem:
         child_names = ["小明", "小红", "小刚", "小芳", "小华", "小丽"]
         name = random.choice(child_names)
 
-        # 在家附近出生
-        position = parent1.home_location
+        # 在家附近出生（确保有有效位置）
+        position = parent1.home_location or parent2.home_location or (0, 0)
 
         # 创建孩子Agent
         child_id = f"agent_child_{current_tick}"
@@ -227,7 +232,7 @@ class ReproductionSystem:
         parent1.children.append(child_id)
         parent2.children.append(child_id)
 
-        # 重置怀孕状态
+        # 重置怀孕状态（parent1是怀孕的一方）
         parent1.pregnancy_start_tick = None
 
         print(f"👶 {parent1.name} 和 {parent2.name} 生下了 {name}！")
