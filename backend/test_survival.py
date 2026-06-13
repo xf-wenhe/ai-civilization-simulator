@@ -68,8 +68,50 @@ def test_death():
 
     print("✓ 死亡测试通过")
 
+def test_revival():
+    """测试复活"""
+    world = WorldState(width=10, height=10)
+    sys = SurvivalSystem(world)
+
+    agent = Agent(
+        id="test",
+        name="Test",
+        personality={t: 0.5 for t in PersonalityTrait}
+    )
+
+    # 设置死亡状态
+    agent.health = 0
+    agent.is_alive = False
+    agent.death_tick = 100
+    agent.revival_count = 0
+    agent.position = [5, 5]
+
+    # 测试无建筑复活（在世界中心）
+    revived = sys.revive(agent, buildings=[])
+
+    assert revived == True
+    assert agent.is_alive == True
+    assert agent.health == 50
+    assert agent.energy == 50
+    assert agent.hunger == 70
+    assert agent.thirst == 70
+    assert agent.revival_count == 1
+    assert isinstance(agent.position, list)
+    assert len(agent.position) == 2
+    # 中心位置是 [5, 5]
+    assert agent.position == [5, 5]
+
+    # 测试无法再次复活
+    agent.is_alive = False
+    revived_again = sys.revive(agent, buildings=[])
+    assert revived_again == False
+    assert agent.is_alive == False
+
+    print("✓ 复活测试通过")
+
 if __name__ == "__main__":
     test_hunger_decay()
     test_eat()
     test_death()
+    test_revival()
     print("\n✅ 所有生存系统测试通过")

@@ -230,10 +230,10 @@ async def run_simulation():
                     for building_id in location.buildings:
                         # 从orchestrator的building_system获取建筑信息
                         if hasattr(orchestrator, 'building_system'):
-                            building = orchestrator.building_system.get_building(building_id)
+                            building = orchestrator.building_system.buildings.get(building_id)
                             if building:
                                 buildings.append({
-                                    "type": building.building_type.value if hasattr(building.building_type, 'value') else str(building.building_type),
+                                    "type": building.type.value,
                                     "position": building.position
                                 })
 

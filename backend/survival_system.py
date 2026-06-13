@@ -110,7 +110,7 @@ class SurvivalSystem:
                     agent.position = nearest["position"]
         else:
             # 无建筑，在世界中心复活
-            agent.position = (self.world.width // 2, self.world.height // 2)
+            agent.position = [self.world.width // 2, self.world.height // 2]
 
         # 恢复状态
         agent.health = 50
