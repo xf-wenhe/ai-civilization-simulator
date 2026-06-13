@@ -132,6 +132,24 @@ async def get_agent_memories(agent_id: str):
     # 返回空列表，因为模拟模式没有实际记忆
     return {"memories": []}
 
+@app.get("/agents/{agent_id}/survival")
+async def get_agent_survival(agent_id: str):
+    """获取智能体生存状态"""
+    if not orchestrator or agent_id not in orchestrator.agents:
+        return {"detail": "Agent not found"}
+
+    agent = orchestrator.agents[agent_id]
+    return {
+        "agent_id": agent.id,
+        "name": agent.name,
+        "hunger": agent.hunger if hasattr(agent, 'hunger') else 100.0,
+        "thirst": agent.thirst if hasattr(agent, 'thirst') else 100.0,
+        "health": agent.health if hasattr(agent, 'health') else 100.0,
+        "energy": agent.energy,
+        "is_alive": agent.is_alive if hasattr(agent, 'is_alive') else True,
+        "revival_count": agent.revival_count if hasattr(agent, 'revival_count') else 0
+    }
+
 @app.get("/events")
 async def get_events():
     return {
@@ -206,6 +224,32 @@ async def run_simulation():
             # 让每个智能体行动
             if orchestrator:
                 for agent in orchestrator.agents.values():
+                    # === 新增：死亡检查和复活 ===
+                    if not agent.is_alive:
+                        if agent.revival_count < 1:
+                            # 获取所有建筑
+                            buildings = []
+                            for pos, location in world.locations.items():
+                                for building_id in location.buildings:
+                                    # 从orchestrator的building_system获取建筑信息
+                                    if hasattr(orchestrator, 'building_system'):
+                                        building = orchestrator.building_system.get_building(building_id)
+                                        if building:
+                                            buildings.append({
+                                                "type": building.building_type.value if hasattr(building.building_type, 'value') else str(building.building_type),
+                                                "position": building.position
+                                            })
+
+                            # 尝试复活
+                            if orchestrator.survival_system.revive(agent, buildings):
+                                action_log.append(f"Tick {tick_count}: 💀➡️❤️ {agent.name} 复活了！")
+                                print(f"💀➡️❤️ {agent.name} 在位置 {agent.position} 复活了！")
+                                print(f"   ❤️ 健康: {agent.health}, ⚡ 能量: {agent.energy}")
+                                print(f"   🍖 饥饿: {agent.hunger}, 💧 口渴: {agent.thirst}")
+                        else:
+                            # 已经复活过，跳过这个智能体
+                            continue
+
                     # 决策
                     decision = orchestrator._simulate_decision(agent)
 
