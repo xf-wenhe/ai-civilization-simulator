@@ -29,6 +29,25 @@ class ResourceType(Enum):
     KNOWLEDGE = "knowledge"
 
 
+class BuildingType(Enum):
+    """建筑类型"""
+    HOUSE = "house"
+    WELL = "well"
+    WAREHOUSE = "warehouse"
+
+
+@dataclass
+class Building:
+    """建筑实例"""
+    id: str
+    type: BuildingType
+    level: int
+    position: Tuple[int, int]
+    owner_id: str
+    build_tick: int
+    name: str = ""  # 建筑名称
+
+
 @dataclass
 class Location:
     """World location"""
