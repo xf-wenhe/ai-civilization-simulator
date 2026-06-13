@@ -229,6 +229,41 @@ async def run_simulation():
                     print(f"   🎒 物品: {agent.inventory}")
                     print()
 
+                # === 新增：繁衍系统更新 ===
+                # 1. 检查怀孕进度并生育
+                agents_to_check = list(orchestrator.agents.values())
+                for agent in agents_to_check:
+                    if agent.pregnancy_start_tick is not None:
+                        if orchestrator.reproduction_system.check_pregnancy_progress(agent, tick_count):
+                            # 找到配偶
+                            if agent.spouse_id and agent.spouse_id in orchestrator.agents:
+                                spouse = orchestrator.agents[agent.spouse_id]
+                                child = orchestrator.reproduction_system.create_child(
+                                    agent,
+                                    spouse,
+                                    tick_count
+                                )
+                                if child:
+                                    # 将孩子添加到世界
+                                    orchestrator.agents[child.id] = child
+                                    world.locations[child.position].agents_present.append(child.id)
+                                    action_log.append(f"Tick {tick_count}: 👶 {child.name} 出生了！")
+                                    print(f"👶 {agent.name} 和 {spouse.name} 生下了 {child.name}！")
+
+                # 2. 尝试让已婚智能体怀孕
+                for agent in orchestrator.agents.values():
+                    if (agent.relationship_status == "married" and
+                        agent.pregnancy_start_tick is None and
+                        agent.spouse_id and
+                        agent.spouse_id in orchestrator.agents):
+
+                        # 检查是否可以怀孕
+                        can_conceive, reason = orchestrator.reproduction_system.can_conceive(agent)
+                        if can_conceive:
+                            success = orchestrator.reproduction_system.start_pregnancy(agent, tick_count)
+                            if success:
+                                action_log.append(f"Tick {tick_count}: 🤰 {agent.name} 怀孕了！")
+
             # 每10个tick保存一次
             save_counter += 1
             if save_counter >= 10:

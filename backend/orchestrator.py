@@ -20,6 +20,7 @@ from memory_system import AgentMemorySystem
 from survival_system import SurvivalSystem
 from dialogue_generator import DialogueGenerator
 from building_system import BuildingSystem, BuildingType
+from reproduction_system import ReproductionSystem
 
 
 class EnhancedAgentOrchestrator:
@@ -63,6 +64,9 @@ class EnhancedAgentOrchestrator:
 
         # === 新增：初始化建筑系统 ===
         self.building_system = BuildingSystem(world)
+
+        # === 新增：初始化繁衍系统 ===
+        self.reproduction_system = ReproductionSystem(world)
 
         # Create initial agents
         for i in range(agent_count):
@@ -464,22 +468,19 @@ Your decisions should reflect your personality traits and current needs."""
         if target_id not in (location.agents_present if location else []):
             return f"{target.name} is not nearby"
 
-        # 初始化关系
-        if target_id not in agent.relationships:
-            agent.relationships[target_id] = Relationship(
-                agent_id=target_id,
-                trust=0.0,
-                friendship=0.0,
-                interactions=0
-            )
-
-        # 增加互动次数
-        agent.relationships[target_id].interactions += 1
-
-        # === 新增：生成对话 ===
+        # === 新增：使用繁衍系统更新关系 ===
+        # 确定互动类型
         dialogue_type = self._determine_dialogue_type(agent, target)
-        context = f"在{location.biome.value if location else '未知'}相遇"
 
+        # 更新关系
+        relationship_stage = self.reproduction_system.update_relationship(
+            agent,
+            target_id,
+            interaction_type="friendly" if dialogue_type != "conflict" else "conflict"
+        )
+
+        # 生成对话
+        context = f"在{location.biome.value if location else '未知'}相遇"
         dialogue = self.dialogue_generator.generate_dialogue(
             agent,
             target,
@@ -489,19 +490,15 @@ Your decisions should reflect your personality traits and current needs."""
 
         print(f"💬 {agent.name}: {dialogue}")
 
-        # === 更新关系 ===
-        # 更新友谊值
-        if agent.personality[PersonalityTrait.AGREEABLENESS] > 0.5:
-            agent.relationships[target_id].friendship = min(
-                1.0,
-                agent.relationships[target_id].friendship + 0.1
-            )
-
-        # 更新信任值
-        agent.relationships[target_id].trust = min(
-            1.0,
-            agent.relationships[target_id].trust + 0.05
-        )
+        # === 新增：检查求婚 ===
+        # 如果是恋爱关系且有房屋，尝试求婚
+        if relationship_stage == "恋爱":
+            can_propose, reason = self.reproduction_system.can_propose_marriage(agent, target)
+            if can_propose:
+                # 求婚成功
+                success = self.reproduction_system.marry(agent, target)
+                if success:
+                    return f"Communicated with {target.name}: {dialogue} [求婚成功！]"
 
         return f"Communicated with {target.name}: {dialogue}"
 
