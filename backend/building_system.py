@@ -85,9 +85,9 @@ class BuildingSystem:
         config = BUILDING_CONFIGS[building_type][level]
         cost = config["cost"]
 
-        # 消耗资源
+        # 消耗资源（使用get避免KeyError）
         for resource, amount in cost.items():
-            agent.inventory[resource] -= amount
+            agent.inventory[resource] = agent.inventory.get(resource, 0) - amount
 
         # 创建建筑
         self.building_counter += 1
@@ -130,6 +130,8 @@ class BuildingSystem:
             distance = abs(building.position[0] - position[0]) + abs(building.position[1] - position[1])
 
             # 水井范围
+            # TODO: range_map logic duplicates information that should be in BUILDING_CONFIGS
+            # Consider adding a numeric "range" field to BUILDING_CONFIGS for each level
             if building.type == BuildingType.WELL:
                 range_map = {1: 3, 2: 5, 3: 7}
                 if distance <= range_map.get(building.level, 3):
