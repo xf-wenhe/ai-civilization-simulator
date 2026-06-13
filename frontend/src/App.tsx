@@ -83,8 +83,8 @@ function App() {
             .replace(/建造了茅屋/g, '建造了茅屋 🏠')
             .replace(/建造了木屋/g, '建造了木屋 🏠')
             .replace(/建造了水井/g, '建造了水井 ⛲')
-            .replace(/复活/g, '复活 ⚡')
-            .replace(/死亡/g, '去世 💀');
+            .replace(/复活了/g, '复活了 ⚡')
+            .replace(/死亡了/g, '去世了 💀');
         });
         setEvents(translatedEvents);
       } catch (error) {
