@@ -6,14 +6,51 @@ from typing import Dict, List, Optional, Tuple
 import random
 
 from agent import Agent, PersonalityTrait, ActionType, Relationship
-from world_state import WorldState
+from world_state import WorldState, BiomeType
 
 
 class ReproductionSystem:
     """管理智能体繁衍"""
 
+    # 繁衍相关常量
+    PREGNANCY_PROBABILITY = 0.05  # 怀孕概率 5%
+    PREGNANCY_DURATION = 20  # 怀孕持续tick数
+
     def __init__(self, world: WorldState):
         self.world = world
+
+    def _is_valid_spawn_position(self, position: Tuple[int, int]) -> bool:
+        """检查位置是否有效（在边界内且不是水域）"""
+        x, y = position
+
+        # 检查边界
+        if x < 0 or x >= self.world.width or y < 0 or y >= self.world.height:
+            return False
+
+        # 检查地形
+        location = self.world.get_location(position)
+        if location and location.biome == BiomeType.RIVER:
+            return False
+
+        return True
+
+    def _find_safe_spawn_position(self, preferred_position: Tuple[int, int]) -> Tuple[int, int]:
+        """找到一个安全的生成位置"""
+        # 如果首选位置有效，使用它
+        if self._is_valid_spawn_position(preferred_position):
+            return preferred_position
+
+        # 否则在附近寻找有效位置
+        x, y = preferred_position
+        for dx in range(-2, 3):
+            for dy in range(-2, 3):
+                test_pos = (x + dx, y + dy)
+                if self._is_valid_spawn_position(test_pos):
+                    return test_pos
+
+        # 最后回退到世界中心
+        center = (self.world.width // 2, self.world.height // 2)
+        return center
 
     def update_relationship(
         self,
@@ -150,8 +187,8 @@ class ReproductionSystem:
         if agent.inventory.get("water", 0) < 10:
             return False, "水源不足"
 
-        # 5%概率怀孕
-        if random.random() > 0.05:
+        # 使用常量判断怀孕概率
+        if random.random() > self.PREGNANCY_PROBABILITY:
             return False, "时机未到"
 
         return True, "可以怀孕"
@@ -173,8 +210,8 @@ class ReproductionSystem:
         if agent.pregnancy_start_tick is None:
             return False
 
-        # 怀孕持续20个tick
-        if current_tick - agent.pregnancy_start_tick >= 20:
+        # 使用常量判断怀孕时长
+        if current_tick - agent.pregnancy_start_tick >= self.PREGNANCY_DURATION:
             return True  # 可以生了
 
         return False
@@ -190,6 +227,15 @@ class ReproductionSystem:
         # 验证配偶关系
         if parent1.spouse_id != parent2.id or parent2.spouse_id != parent1.id:
             print(f"⚠️ 无法生育: 不是配偶关系")
+            return None
+
+        # 验证parent1是否怀孕并已到分娩期
+        if parent1.pregnancy_start_tick is None:
+            print(f"⚠️ 无法生育: {parent1.name} 未怀孕")
+            return None
+
+        if current_tick - parent1.pregnancy_start_tick < self.PREGNANCY_DURATION:
+            print(f"⚠️ 无法生育: 怀孕尚未足月")
             return None
 
         # 性格遗传（50%父母平均 + 50%随机）
@@ -211,11 +257,12 @@ class ReproductionSystem:
         child_names = ["小明", "小红", "小刚", "小芳", "小华", "小丽"]
         name = random.choice(child_names)
 
-        # 在家附近出生（确保有有效位置）
-        position = parent1.home_location or parent2.home_location or (0, 0)
+        # 确定安全的生成位置（优先使用家，验证有效性）
+        preferred_position = parent1.home_location or parent2.home_location or (0, 0)
+        position = self._find_safe_spawn_position(preferred_position)
 
-        # 创建孩子Agent
-        child_id = f"agent_child_{current_tick}"
+        # 创建孩子Agent - 使用父母ID和时间戳确保唯一性
+        child_id = f"agent_child_{parent1.id}_{parent2.id}_{current_tick}"
 
         child = Agent(
             id=child_id,
